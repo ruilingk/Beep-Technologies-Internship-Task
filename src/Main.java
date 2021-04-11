@@ -1,6 +1,7 @@
 import Exceptions.BeepException;
 import Functions.Function;
 
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
@@ -12,7 +13,7 @@ public class Main {
         try {
             Function function = parser.checkInput(input);
             function.execute();
-        } catch (BeepException e) {
+        } catch (BeepException | IOException e) {
             System.out.println(e.getMessage());
         }
     }
