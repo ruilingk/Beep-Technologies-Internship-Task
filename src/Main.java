@@ -11,10 +11,10 @@ public class Main {
         Parser parser = new Parser();
         try {
             Function function = parser.checkInput(input);
+            function.execute();
         } catch (BeepException e) {
             System.out.println(e.getMessage());
         }
-
     }
 
 }

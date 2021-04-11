@@ -1,4 +1,5 @@
 package Functions;
 
-public class Function {
+public abstract class Function {
+    public abstract void execute();
 }

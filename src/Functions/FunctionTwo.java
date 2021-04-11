@@ -8,4 +8,9 @@ public class FunctionTwo extends Function {
         this.numberA = numberA;
         this.numberB = numberB;
     }
+
+    @Override
+    public void execute() {
+
+    }
 }

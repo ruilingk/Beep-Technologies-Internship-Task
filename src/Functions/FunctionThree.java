@@ -6,4 +6,9 @@ public class FunctionThree extends Function {
     public FunctionThree(String text) {
         this.text = text;
     }
+
+    @Override
+    public void execute() {
+
+    }
 }
