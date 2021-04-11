@@ -1,4 +1,5 @@
-import Exceptions.*;
+import Exceptions.BeepException;
+import Functions.Function;
 
 import java.util.Scanner;
 
@@ -9,10 +10,11 @@ public class Main {
         String input = sc.nextLine();
         Parser parser = new Parser();
         try {
-            parser.checkInput(input);
+            Function function = parser.checkInput(input);
         } catch (BeepException e) {
             System.out.println(e.getMessage());
         }
+
     }
 
 }
