@@ -14,63 +14,59 @@ import org.json.simple.parser.JSONParser;
 
 public class FunctionFour extends Function {
 
+    // customer class to store name and email
     private static class Customer {
-        private String name;
-        private String email;
+        private final String name;
+        private final String email;
+        private static int id = 0;
 
         public Customer(String name, String email) {
             this.name = name;
             this.email = email;
+            id++;
+        }
+
+        @Override
+        public String toString() {
+            return "Customer " + id + ":\n\tName: " + name + "\n\tEmail: " + email + "\n\tPromotions:";
         }
     }
 
+    // promotion class to store details related to promotions
     private static class Promotion {
         private final String title;
         private final String quantity;
         private final String type;
         private final String discount;
+        private static int id = 0;
 
         public Promotion(String title, String quantity, String type, String discount) {
             this.title = title;
             this.quantity = quantity;
             this.type = type;
             this.discount = discount;
+            id++;
         }
 
         @Override
         public String toString() {
-//            if (discount != null) {
-//                return "{\n" +
-//                        "\t\t\t\"title\":\"" + title + "\",\n" +
-//                        "\t\t\t\"quantity\":\"" + quantity + "\",\n" +
-//                        "\t\t\t\"type\":\"" + type + "\",\n" +
-//                        "\t\t\t\"discount\":\"" + discount + "\"\n" +
-//                        "\t\t}";
-//            } else {
-//                return "{\n" +
-//                        "\t\t\t\"title\":\"" + title + "\",\n" +
-//                        "\t\t\t\"quantity\":\"" + quantity + "\",\n" +
-//                        "\t\t\t\"type\":\"" + type + "\"\n" +
-//                        "\t\t}";
-//            }
-            if (discount != null) {
-                return "{\n" +
-                        "\t\"title\":\"" + title + "\",\n" +
-                        "\t\"quantity\":\"" + quantity + "\",\n" +
-                        "\t\"type\":\"" + type + "\",\n" +
-                        "\t\"discount\":\"" + discount + "\"\n" +
-                        "}";
+            if (discount != null) { // assuming only discount can be present/not present
+                return "\t\tPromotion " + id + ": " +
+                        "\n\t\t\tTitle: " + title +
+                        "\n\t\t\tQuantity: " + quantity +
+                        "\n\t\t\tType: " + type +
+                        "\n\t\t\tDiscount: " + discount;
             } else {
-                return "{\n" +
-                        "\t\"title\":\"" + title + "\",\n" +
-                        "\t\"quantity\":\"" + quantity + "\",\n" +
-                        "\t\"type\":\"" + type + "\"\n" +
-                        "}";
+                return "\t\tPromotion " + id + ": " +
+                        "\n\t\t\tTitle: " + title +
+                        "\n\t\t\tQuantity: " + quantity +
+                        "\n\t\t\tType: " + type;
             }
         }
     }
 
-    static class MyJSONComparator implements Comparator<JSONObject> {
+    // comparator to compare JSON for the descending order of title
+    private static class MyJSONComparator implements Comparator<JSONObject> {
         @Override
         public int compare(JSONObject o1, JSONObject o2) {
             String string1 = (String) o1.get("title");
@@ -79,27 +75,10 @@ public class FunctionFour extends Function {
         }
     }
 
-    @Override
-    public void execute() throws IOException {
-        StringBuilder result = new StringBuilder();
-        String urlToVisit = "https://dev.beepbeep.tech/v1/sample_customer";
-        URL url = new URL(urlToVisit);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("accept", "application/json");
-
-        try (var reader = new BufferedReader(
-                new InputStreamReader(conn.getInputStream()))) {
-            for (String line; (line = reader.readLine()) != null; ) {
-                result.append(line);
-            }
-        }
-
-        String JSONString = result.toString();
-        System.out.println(JSONString);
-
-        String name = "";
-        String email = "";
+    // get promotions in an arraylist
+    private ArrayList<JSONObject> getPromotions(String JSONString) {
+        String name;
+        String email;
 
         JSONParser parser = new JSONParser();
         ArrayList<JSONObject> list = new ArrayList<>();
@@ -107,7 +86,8 @@ public class FunctionFour extends Function {
             JSONObject jsonObject = (JSONObject) parser.parse(JSONString);
             name = jsonObject.get("name").toString();
             email = jsonObject.get("email").toString();
-
+            Customer customer = new Customer(name, email);
+            System.out.println(customer);
             JSONArray array = (JSONArray) jsonObject.get("promotions");
 
             for (Object value : array) {
@@ -117,19 +97,20 @@ public class FunctionFour extends Function {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return list;
+    }
 
-        System.out.println(list);
-        Customer customer = new Customer(name, email);
-
+    // print out the promotions
+    private void printPromotions(ArrayList<JSONObject> promotions) {
         String title = "";
         String quantity = "";
         String type = "";
-        String discount = "";
+        String discount;
         Promotion promotion;
         StringBuilder toBePrinted = new StringBuilder();
 
-        for (int i = 0; i < list.size(); i++) {
-            JSONObject object = list.get(i);
+        for (int i = 0; i < promotions.size(); i++) {
+            JSONObject object = promotions.get(i);
             try {
                 title = object.get("title").toString();
                 quantity = object.get("quantity").toString();
@@ -140,10 +121,31 @@ public class FunctionFour extends Function {
                 promotion = new Promotion(title, quantity, type, null);
             }
             toBePrinted.append(promotion);
-            if (i != list.size() - 1) {
-                toBePrinted.append(", \n");
+            if (i != promotions.size() - 1) {
+                toBePrinted.append("\n");
             }
         }
         System.out.println(toBePrinted.toString());
+    }
+
+    @Override
+    public void execute() throws IOException {
+        String urlToVisit = "https://dev.beepbeep.tech/v1/sample_customer";
+        URL url = new URL(urlToVisit);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+        conn.setRequestProperty("accept", "application/json");
+
+        StringBuilder result = new StringBuilder();
+        try (var reader = new BufferedReader(
+                new InputStreamReader(conn.getInputStream()))) {
+            for (String line; (line = reader.readLine()) != null;) {
+                result.append(line);
+            }
+        }
+
+        String JSONString = result.toString();
+        ArrayList<JSONObject> promotions = getPromotions(JSONString);
+        printPromotions(promotions);
     }
 }
