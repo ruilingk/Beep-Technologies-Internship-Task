@@ -13,37 +13,6 @@ public class FunctionTwo extends Function {
         this.numberB = numberB;
     }
 
-//    @Override
-//    public void execute() {
-//        boolean[] prime = new boolean[numberB + 1];
-//        Arrays.fill(prime, true);
-//        fillPrimeArray(prime);
-//
-//        for (int i = numberA; i <= numberB; i++) {
-//            if (prime[i] && isPalindrome(i)) {
-//                if (!list.contains(i)) {
-//                    list.add(i);
-//                }
-//            } else {
-//                if (i >= 10) {
-//                    String number = String.valueOf(i);
-//                    for (int j = 0; j < number.length(); j++) {
-//                        StringBuilder stringBuilder = new StringBuilder(number);
-//                        stringBuilder.deleteCharAt(j);
-//                        int cutNumber = Integer.parseInt(stringBuilder.toString());
-//                        if (prime[cutNumber] && isPalindrome(cutNumber)) {
-//                            if (!list.contains(i)) {
-//                                list.add(i);
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        printList();
-//    }
-
-    // if we don't include palindromic primes without removing 1 digit
     @Override
     public void execute() {
         boolean[] prime = new boolean[numberB + 1];
