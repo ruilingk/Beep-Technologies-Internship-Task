@@ -47,8 +47,8 @@ public class Parser {
             if (size != 2) {
                 throw new InvalidFunctionThreeException();
             }
-            String text = splitInput[1];
-            return new FunctionThree(text);
+            String filePath = splitInput[1];
+            return new FunctionThree(filePath);
         } else if (functionNumber.equals("4")) {
             if (size != 1) {
                 throw new InvalidFunctionFourException();

@@ -75,7 +75,7 @@ public class FunctionFour extends Function {
         public int compare(JSONObject o1, JSONObject o2) {
             String string1 = (String) o1.get("title");
             String string2 = (String) o2.get("title");
-            return string1.compareTo(string2);
+            return string2.compareTo(string1);
         }
     }
 
