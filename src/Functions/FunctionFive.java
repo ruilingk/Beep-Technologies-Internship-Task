@@ -1,14 +1,10 @@
 package Functions;
 
-import com.opencsv.CSVReader;
-import com.opencsv.exceptions.CsvValidationException;
-
+import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -23,38 +19,28 @@ public class FunctionFive extends Function {
 
     HashMap<String, String> orderIDAndSellerID = new HashMap<>();
     HashMap<String, PairOfSumAndReviews> sellerIDAndReviewScore = new HashMap<>();
-    HashMap<String, Integer> sellerIDAndAverageReviewScore = new HashMap<>();
-    HashMap<String, Integer> sortedSellerIDAndAverageReviewScore = new HashMap<>();
+    HashMap<String, Double> sellerIDAndAverageReviewScore = new HashMap<>();
+    HashMap<String, Double> sortedSellerIDAndAverageReviewScore = new HashMap<>();
 
     HashMap<String, String> orderIDAndProductID = new HashMap<>();
-    HashMap<String, Integer> orderIDAndPaymentValue = new HashMap<>();
-    HashMap<String, Integer> productIDAndPaymentValue = new HashMap<>();
+    HashMap<String, Double> orderIDAndPaymentValue = new HashMap<>();
+    HashMap<String, Double> productIDAndPaymentValue = new HashMap<>();
     HashMap<String, String> productIDAndName = new HashMap<>();
-    HashMap<String, Integer> productNameAndRevenue = new HashMap<>();
+    HashMap<String, Double> productNameAndRevenue = new HashMap<>();
     HashMap<String, String> categoryNameAndEnglishName = new HashMap<>();
-    HashMap<String, Integer> englishNameAndRevenue = new HashMap<>();
-    HashMap<String, Integer> sortedEnglishNameAndRevenue = new HashMap<>();
+    HashMap<String, Double> englishNameAndRevenue = new HashMap<>();
+    HashMap<String, Double> sortedEnglishNameAndRevenue = new HashMap<>();
 
-    HashMap<String, Integer> sellerIDAndPaymentValue = new HashMap<>();
+    HashMap<String, Double> sellerIDAndPaymentValue = new HashMap<>();
     HashMap<String, LocalDate> orderIDAndOrderApprovedAt = new HashMap<>();
     HashMap<String, PairOfFirstAndLastDate> sellerIDAndDates = new HashMap<>();
     HashMap<String, Integer> sellerIDAndDays = new HashMap<>();
-    HashMap<String, Integer> sortedSellerIDAndPaymentValue = new HashMap<>();
+    HashMap<String, Double> sortedSellerIDAndPaymentValue = new HashMap<>();
 
     HashMap<String, String> sellerIDAndSellerState = new HashMap<>();
-    HashMap<String, Integer> sellerStateAndPaymentValue = new HashMap<>();
+    HashMap<String, Double> sellerStateAndPaymentValue = new HashMap<>();
     HashMap<String, Integer> sellerStateAndMonths = new HashMap<>();
 
-    /*
-        List the top 10 sellers with the highest review score. (order_reviews:order_id -> order_items:seller_id)
-        Calculate the top 10 product categories with the highest sales and show their english name. (order_reviews:order_id -> order_items:product_id -> products:product_category_name -> product_category_name_translation:product_category_name_english)
-        Count the daily average revenue by the top 10 sellers with the highest total revenue. (order_payments:payment_value)
-        Count the monthly revenue in each seller state.
-        If you are a seller, what kind of products you will sell? Where are you going to open your store? And why?
-     */
-
-    String USER_DIRECTORY = System.getProperty("user.dir");
-    String CUSTOMERS_PATH = "data/customers.csv";
     String ORDER_ITEMS_PATH = "data/order_items.csv";
     String ORDER_PAYMENTS_PATH = "data/order_payments.csv";
     String ORDER_REVIEWS_PATH = "data/order_reviews.csv";
@@ -109,8 +95,8 @@ public class FunctionFive extends Function {
     }
 
     // sort the hashmap based on values, then keys if values are same
-    private static HashMap<String, Integer> sortByValue(HashMap<String, Integer> unsortedMap) {
-        List<Map.Entry<String, Integer>> list = new LinkedList<>(unsortedMap.entrySet());
+    private static HashMap<String, Double> sortByValue(HashMap<String, Double> unsortedMap) {
+        List<Map.Entry<String, Double>> list = new LinkedList<>(unsortedMap.entrySet());
 
         list.sort((o1, o2) -> o2.getValue().compareTo(o1.getValue()) == 0
                 ? o1.getKey().compareTo(o2.getKey())
@@ -120,68 +106,47 @@ public class FunctionFive extends Function {
     }
 
     private void topTenSellersWithHighestReviewScore() throws IOException {
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(ORDER_ITEMS_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                if (count > 0) {
-//                    System.out.println(Arrays.toString(nextRecord));
-                    String orderID = nextRecord[0];
-                    String sellerID = nextRecord[1];
-                    orderIDAndSellerID.put(orderID, sellerID);
-                }
-                count++;
+        File file = new File(ORDER_ITEMS_PATH);
+        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        int count = 0;
+        for (String line : lines) {
+            if (count > 0) {
+                String[] array = line.split(",");
+                String orderID = array[0].replace("\"", "");
+                String sellerID = array[3].replace("\"", "");
+                orderIDAndSellerID.put(orderID, sellerID);
             }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
+            count++;
         }
 
-//        BufferedReader csvReader = new BufferedReader(new FileReader(ORDER_REVIEWS_PATH));
-//        String row;
-//        while ((row = csvReader.readLine()) != null) {
-//            String[] data = row.split(",");
-//            System.out.println(data[1]);
-//            System.out.println(data[2]);
-//            // do something with the data
-//        }
-//        csvReader.close();
-
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(ORDER_REVIEWS_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                System.out.println(nextRecord.length);
-                if (count > 0) {
-                    System.out.println(Arrays.toString(nextRecord));
-                    String orderID = nextRecord[1];
-                    int reviewScore = Integer.parseInt(nextRecord[2]);
-                    String sellerID = orderIDAndSellerID.get(orderID);
-                    if (!sellerIDAndReviewScore.containsKey(sellerID)) {
-                        sellerIDAndReviewScore.put(sellerID, new PairOfSumAndReviews(reviewScore, 1));
-                    } else {
-                        PairOfSumAndReviews pairOfSumAndReviews = sellerIDAndReviewScore.get(sellerID);
-                        int currentSum = pairOfSumAndReviews.getSum();
-                        int currentNumberOfReviews = pairOfSumAndReviews.getNumberOfReviews();
-                        currentSum += reviewScore;
-                        currentNumberOfReviews++;
-                        sellerIDAndReviewScore.put(sellerID, new PairOfSumAndReviews(currentSum, currentNumberOfReviews));
+        File file1 = new File(ORDER_REVIEWS_PATH);
+        List<String> lines1 = Files.readAllLines(file1.toPath(), StandardCharsets.UTF_8);
+        for (String line : lines1) {
+            try {
+                String[] array = line.split(",");
+                String orderID = array[1].replace("\"", "");
+                String sellerID = "";
+                if (orderID.length() == 32) {
+                    sellerID = orderIDAndSellerID.get(orderID);
+                    if (sellerID == null) { // for those that didn't get a review
+                        sellerID = "";
                     }
                 }
-                count++;
+                int reviewScore = Integer.parseInt(array[2]);
 
+                if (!sellerIDAndReviewScore.containsKey(sellerID)) {
+                    sellerIDAndReviewScore.put(sellerID, new PairOfSumAndReviews(reviewScore, 1));
+                } else {
+                    PairOfSumAndReviews pairOfSumAndReviews = sellerIDAndReviewScore.get(sellerID);
+                    int currentSum = pairOfSumAndReviews.getSum();
+                    int currentNumberOfReviews = pairOfSumAndReviews.getNumberOfReviews();
+                    currentSum += reviewScore;
+                    currentNumberOfReviews++;
+                    sellerIDAndReviewScore.put(sellerID, new PairOfSumAndReviews(currentSum, currentNumberOfReviews));
+                }
+            } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
+                continue;
             }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
         }
 
         Iterator<Map.Entry<String, PairOfSumAndReviews>> it = sellerIDAndReviewScore.entrySet().iterator();
@@ -191,63 +156,49 @@ public class FunctionFive extends Function {
             String sellerID = pair.getKey();
             int totalSum = pair.getValue().getSum();
             int totalNumberOfReviews = pair.getValue().getNumberOfReviews();
-            int average = totalSum / totalNumberOfReviews;
+            double average = (double) totalSum / totalNumberOfReviews;
             sellerIDAndAverageReviewScore.put(sellerID, average);
         }
 
         sortedSellerIDAndAverageReviewScore = sortByValue(sellerIDAndAverageReviewScore);
-        Iterator<Map.Entry<String, Integer>> iterator = sortedSellerIDAndAverageReviewScore.entrySet().iterator();
+        Iterator<Map.Entry<String, Double>> iterator = sortedSellerIDAndAverageReviewScore.entrySet().iterator();
 
         System.out.println("Top 10 sellers with high review scores:");
-        int count = 0;
+        count = 0;
         while (iterator.hasNext() && count < 10) {
-            Map.Entry<String, Integer> pair = iterator.next();
+            Map.Entry<String, Double> pair = iterator.next();
             String sellerID = pair.getKey();
-            int averageReviewScore = pair.getValue();
+            double averageReviewScore = pair.getValue();
             count++;
             System.out.println(count + ". Seller ID: " + sellerID + " Average Review Score: " + averageReviewScore);
         }
     }
 
-    private void topTenProductWithHighestSales() {
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(ORDER_ITEMS_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                if (count > 0) {
-                    String orderID = nextRecord[0];
-                    String productID = nextRecord[2];
-                    orderIDAndProductID.put(orderID, productID);
-                }
-                count++;
+    private void topTenProductWithHighestSales() throws IOException {
+        File file = new File(ORDER_ITEMS_PATH);
+        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        int count = 0;
+        for (String line : lines) {
+            if (count > 0) {
+                String[] array = line.split(",");
+                String orderID = array[0].replace("\"", "");
+                String productID = array[2].replace("\"", "");
+                orderIDAndProductID.put(orderID, productID);
             }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
+            count++;
         }
 
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(ORDER_PAYMENTS_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                if (count > 0) {
-                    String orderID = nextRecord[0];
-                    int paymentValue = Integer.parseInt(nextRecord[4]);
-                    orderIDAndPaymentValue.put(orderID, paymentValue);
-                }
-                count++;
+        File file1 = new File(ORDER_PAYMENTS_PATH);
+        List<String> lines1 = Files.readAllLines(file1.toPath(), StandardCharsets.UTF_8);
+        count = 0;
+        for (String line : lines1) {
+            if (count > 0) {
+                String[] array = line.split(",");
+                String orderID = array[0].replace("\"", "");
+                double paymentValue = Double.parseDouble(array[4]);
+                orderIDAndPaymentValue.put(orderID, paymentValue);
             }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
+            count++;
         }
 
         Iterator<Map.Entry<String, String>> it1 = orderIDAndProductID.entrySet().iterator();
@@ -256,227 +207,210 @@ public class FunctionFive extends Function {
             Map.Entry<String, String> pair1 = it1.next();
             String orderID = pair1.getKey();
             String productID = pair1.getValue();
-            int paymentValue = orderIDAndPaymentValue.get(orderID);
-            if (!productIDAndPaymentValue.containsKey(productID)) {
-                productIDAndPaymentValue.put(productID, paymentValue);
-            } else {
-                int currentRevenue = productIDAndPaymentValue.get(productID);
-                currentRevenue += paymentValue;
-                productIDAndPaymentValue.put(productID, currentRevenue);
-            }
-        }
-
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(PRODUCTS_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                if (count > 0) {
-                    String productID = nextRecord[0];
-                    String productName = nextRecord[1];
-                    productIDAndName.put(productID, productName);
+            if (orderIDAndPaymentValue.get(orderID) != null) { // for those that actually paid
+                double paymentValue = orderIDAndPaymentValue.get(orderID);
+                if (!productIDAndPaymentValue.containsKey(productID)) {
+                    productIDAndPaymentValue.put(productID, paymentValue);
+                } else {
+                    double currentRevenue = productIDAndPaymentValue.get(productID);
+                    currentRevenue += paymentValue;
+                    productIDAndPaymentValue.put(productID, currentRevenue);
                 }
-                count++;
             }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
         }
 
-        Iterator<Map.Entry<String, Integer>> it2 = productIDAndPaymentValue.entrySet().iterator();
+        File file2 = new File(PRODUCTS_PATH);
+        List<String> lines2 = Files.readAllLines(file2.toPath(), StandardCharsets.UTF_8);
+        for (String line : lines2) {
+            try {
+                String[] array = line.split(",");
+                String productID = array[0].replace("\"", "");
+                String productName = array[1];
+                productIDAndName.put(productID, productName);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                continue;
+            }
+        }
+
+        Iterator<Map.Entry<String, Double>> it2 = productIDAndPaymentValue.entrySet().iterator();
 
         while (it2.hasNext()) {
-            Map.Entry<String, Integer> pair1 = it2.next();
+            Map.Entry<String, Double> pair1 = it2.next();
             String productID = pair1.getKey();
-            int paymentValue = pair1.getValue();
+            double paymentValue = pair1.getValue();
             String productName = productIDAndName.get(productID);
             if (!productNameAndRevenue.containsKey(productName)) {
                 productNameAndRevenue.put(productName, paymentValue);
             } else {
-                int currentRevenue = productNameAndRevenue.get(productName);
+                double currentRevenue = productNameAndRevenue.get(productName);
                 currentRevenue += paymentValue;
                 productNameAndRevenue.put(productName, currentRevenue);
             }
         }
 
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(PRODUCT_CATEGORY_NAME_TRANSLATION_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                if (count > 0) {
-                    String categoryName = nextRecord[0];
-                    String englishName = nextRecord[1];
-                    categoryNameAndEnglishName.put(categoryName, englishName);
-                }
-                count++;
-            }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
+        File file3 = new File(PRODUCT_CATEGORY_NAME_TRANSLATION_PATH);
+        List<String> lines3 = Files.readAllLines(file3.toPath(), StandardCharsets.UTF_8);
+        for (String line : lines3) {
+            String[] array = line.split(",");
+            String categoryName = array[0];
+            String englishName = array[1];
+            categoryNameAndEnglishName.put(categoryName, englishName);
         }
 
-        Iterator<Map.Entry<String, Integer>> it3 = productNameAndRevenue.entrySet().iterator();
+        Iterator<Map.Entry<String, Double>> it3 = productNameAndRevenue.entrySet().iterator();
 
         while (it3.hasNext()) {
-            Map.Entry<String, Integer> pair1 = it3.next();
+            Map.Entry<String, Double> pair1 = it3.next();
             String productName = pair1.getKey();
-            int revenue = pair1.getValue();
+            double revenue = pair1.getValue();
             String englishName = categoryNameAndEnglishName.get(productName);
             if (!englishNameAndRevenue.containsKey(englishName)) {
                 englishNameAndRevenue.put(englishName, revenue);
             } else {
-                int currentRevenue = englishNameAndRevenue.get(englishName);
+                double currentRevenue = englishNameAndRevenue.get(englishName);
                 currentRevenue += revenue;
                 englishNameAndRevenue.put(englishName, currentRevenue);
             }
         }
-        sortedEnglishNameAndRevenue = sortByValue(englishNameAndRevenue);
-        Iterator<Map.Entry<String, Integer>> iterator = sortedEnglishNameAndRevenue.entrySet().iterator();
 
-        System.out.println("Top 10 product categories with high revenues:");
-        int count = 0;
+        sortedEnglishNameAndRevenue = sortByValue(englishNameAndRevenue);
+        Iterator<Map.Entry<String, Double>> iterator = sortedEnglishNameAndRevenue.entrySet().iterator();
+
+        System.out.println("\nTop 10 product categories with high revenues:");
+        count = 0;
         while (iterator.hasNext() && count < 10) {
-            Map.Entry<String, Integer> pair = iterator.next();
+            Map.Entry<String, Double> pair = iterator.next();
             String englishName = pair.getKey();
-            int revenue = pair.getValue();
+            double revenue = pair.getValue();
             count++;
             System.out.println(count + ". English name of product category: " + englishName +
-                    " Revenue earned: " + revenue);
+                    " Revenue earned: " + String.format("%.2f", revenue));
         }
     }
 
-    private void dailyAverageRevenueByTopTenSellers() {
+    private void dailyAverageRevenueByTopTenSellers() throws IOException {
         Iterator<Map.Entry<String, String>> it1 = orderIDAndSellerID.entrySet().iterator();
 
         while (it1.hasNext()) {
             Map.Entry<String, String> pair1 = it1.next();
             String orderID = pair1.getKey();
             String sellerID = pair1.getValue();
-            int paymentValue = orderIDAndPaymentValue.get(orderID);
-            if (!sellerIDAndPaymentValue.containsKey(sellerID)) {
-                sellerIDAndPaymentValue.put(sellerID, paymentValue);
-            } else {
-                int currentRevenue = sellerIDAndPaymentValue.get(sellerID);
-                currentRevenue += paymentValue;
-                sellerIDAndPaymentValue.put(sellerID, currentRevenue);
+            if (orderIDAndPaymentValue.get(orderID) != null) {
+                double paymentValue = orderIDAndPaymentValue.get(orderID);
+                if (!sellerIDAndPaymentValue.containsKey(sellerID)) {
+                    sellerIDAndPaymentValue.put(sellerID, paymentValue);
+                } else {
+                    double currentRevenue = sellerIDAndPaymentValue.get(sellerID);
+                    currentRevenue += paymentValue;
+                    sellerIDAndPaymentValue.put(sellerID, currentRevenue);
+                }
             }
         }
 
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(ORDERS_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                if (count > 0) {
-                    String orderID = nextRecord[0];
-                    String[] splitDate = nextRecord[4].split(" ");
+        File file = new File(ORDERS_PATH);
+        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        int count = 0;
+        for (String line : lines) {
+            if (count > 0) {
+                String[] array = line.split(",");
+                String orderID = array[0].replace("\"", "");
+                String[] splitDate = array[4].split(" ");
+                if (!splitDate[0].isEmpty()) { // check for cancelled orders
                     LocalDate orderApprovedAt = LocalDate.parse(splitDate[0]);
                     orderIDAndOrderApprovedAt.put(orderID, orderApprovedAt);
                 }
-                count++;
             }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
+            count++;
         }
 
-        while (it1.hasNext()) {
-            Map.Entry<String, String> pair1 = it1.next();
-            String orderID = pair1.getKey();
-            String sellerID = pair1.getValue();
-            LocalDate date = orderIDAndOrderApprovedAt.get(orderID);
-            if (!sellerIDAndDates.containsKey(sellerID)) {
-                sellerIDAndDates.put(sellerID, new PairOfFirstAndLastDate(date, null));
-            } else {
-                PairOfFirstAndLastDate pairOfFirstAndLastDate = sellerIDAndDates.get(sellerID);
-                LocalDate firstDate = pairOfFirstAndLastDate.getFirstDate();
-                LocalDate lastDate = pairOfFirstAndLastDate.getLastDate();
-                if (lastDate == null) {
-                    if (firstDate.isBefore(date)) {
-                        pairOfFirstAndLastDate = new PairOfFirstAndLastDate(firstDate, date);
-                    } else {
-                        pairOfFirstAndLastDate = new PairOfFirstAndLastDate(date, firstDate);
-                    }
-                } else {
-                    if (firstDate.isAfter(date)) {
-                        pairOfFirstAndLastDate = new PairOfFirstAndLastDate(date, lastDate);
-                    } else if (lastDate.isBefore(date)) {
-                        pairOfFirstAndLastDate = new PairOfFirstAndLastDate(firstDate, date);
-                    }
-                }
-                sellerIDAndDates.put(sellerID, pairOfFirstAndLastDate);
-            }
-        }
-
-        Iterator<Map.Entry<String, PairOfFirstAndLastDate>> it2 = sellerIDAndDates.entrySet().iterator();
+        Iterator<Map.Entry<String, String>> it2 = orderIDAndSellerID.entrySet().iterator();
 
         while (it2.hasNext()) {
-            Map.Entry<String, PairOfFirstAndLastDate> pair1 = it2.next();
+            Map.Entry<String, String> pair1 = it2.next();
+            String orderID = pair1.getKey();
+            String sellerID = pair1.getValue();
+            if (orderIDAndOrderApprovedAt.get(orderID) != null) { // order ID not being approved
+                LocalDate date = orderIDAndOrderApprovedAt.get(orderID);
+                if (!sellerIDAndDates.containsKey(sellerID)) {
+                    sellerIDAndDates.put(sellerID, new PairOfFirstAndLastDate(date, null));
+                } else {
+                    PairOfFirstAndLastDate pairOfFirstAndLastDate = sellerIDAndDates.get(sellerID);
+                    LocalDate firstDate = pairOfFirstAndLastDate.getFirstDate();
+                    LocalDate lastDate = pairOfFirstAndLastDate.getLastDate();
+                    if (lastDate == null) {
+                        if (firstDate.isBefore(date)) {
+                            pairOfFirstAndLastDate = new PairOfFirstAndLastDate(firstDate, date);
+                        } else {
+                            pairOfFirstAndLastDate = new PairOfFirstAndLastDate(date, firstDate);
+                        }
+                    } else {
+                        if (firstDate.isAfter(date)) {
+                            pairOfFirstAndLastDate = new PairOfFirstAndLastDate(date, lastDate);
+                        } else if (lastDate.isBefore(date)) {
+                            pairOfFirstAndLastDate = new PairOfFirstAndLastDate(firstDate, date);
+                        }
+                    }
+                    sellerIDAndDates.put(sellerID, pairOfFirstAndLastDate);
+                }
+            }
+        }
+
+        Iterator<Map.Entry<String, PairOfFirstAndLastDate>> it3 = sellerIDAndDates.entrySet().iterator();
+
+        while (it3.hasNext()) {
+            Map.Entry<String, PairOfFirstAndLastDate> pair1 = it3.next();
             String sellerID = pair1.getKey();
             LocalDate first = pair1.getValue().getFirstDate();
             LocalDate last = pair1.getValue().getLastDate();
+            if (last == null) { // meaning seller only has 1 order in total
+                last = first;
+            }
             int numberOfDays = (int) first.until(last, DAYS.toChronoUnit());
             sellerIDAndDays.put(sellerID, numberOfDays);
         }
 
         sortedSellerIDAndPaymentValue = sortByValue(sellerIDAndPaymentValue);
-        Iterator<Map.Entry<String, Integer>> it3 = sortedSellerIDAndPaymentValue.entrySet().iterator();
+        Iterator<Map.Entry<String, Double>> it4 = sortedSellerIDAndPaymentValue.entrySet().iterator();
 
-        System.out.println("Daily Average Revenue By Top Ten Sellers: ");
-        int count = 0;
-        while (it3.hasNext() && count < 10) {
-            Map.Entry<String, Integer> pair1 = it3.next();
+        System.out.println("\nDaily average revenue by top 10 sellers:");
+        count = 0;
+        while (it4.hasNext() && count < 10) {
+            Map.Entry<String, Double> pair1 = it4.next();
             String sellerID = pair1.getKey();
             int days = sellerIDAndDays.get(sellerID);
-            int payment = pair1.getValue();
-            int dailyAverageRevenue = payment / days;
-            System.out.println("Seller ID: " + sellerID + " , Daily average revenue: " + dailyAverageRevenue);
+            double payment = pair1.getValue();
+            double dailyAverageRevenue = payment / days;
             count++;
+            System.out.println(count + ". Seller ID: " + sellerID + " Daily average revenue: "
+                    + String.format("%.2f", dailyAverageRevenue));
         }
     }
 
-    private void monthlyRevenueInEachState() {
-        try (
-            Reader reader = Files.newBufferedReader(Paths.get(SELLERS_PATH));
-            CSVReader csvReader = new CSVReader(reader);
-        ) {
-            String[] nextRecord;
-            int count = 0;
-            while ((nextRecord = csvReader.readNext()) != null) {
-                if (count > 0) {
-                    String sellerID = nextRecord[0];
-                    String sellerState = nextRecord[3];
-                    sellerIDAndSellerState.put(sellerID, sellerState);
-                }
-                count++;
+    private void monthlyRevenueInEachState() throws IOException {
+        File file = new File(SELLERS_PATH);
+        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        int count = 0;
+        for (String line : lines) {
+            if (count > 0) {
+                String[] array = line.split(",");
+                String sellerID = array[0].replace("\"", "");
+                String sellerState = array[array.length - 1];
+                sellerIDAndSellerState.put(sellerID, sellerState);
             }
-            reader.close();
-            csvReader.close();
-        } catch (IOException | CsvValidationException e) {
-            e.printStackTrace();
+            count++;
         }
 
-        Iterator<Map.Entry<String, Integer>> it1 = sellerIDAndPaymentValue.entrySet().iterator();
+        Iterator<Map.Entry<String, Double>> it1 = sellerIDAndPaymentValue.entrySet().iterator();
 
         while (it1.hasNext()) {
-            Map.Entry<String, Integer> pair1 = it1.next();
+            Map.Entry<String, Double> pair1 = it1.next();
             String sellerID = pair1.getKey();
             String sellerState = sellerIDAndSellerState.get(sellerID);
-            int paymentValue = pair1.getValue();
+            double paymentValue = pair1.getValue();
             if (!sellerStateAndPaymentValue.containsKey(sellerState)) {
                 sellerStateAndPaymentValue.put(sellerState, paymentValue);
             } else {
-                int currentRevenue = sellerStateAndPaymentValue.get(sellerState);
+                double currentRevenue = sellerStateAndPaymentValue.get(sellerState);
                 currentRevenue += paymentValue;
                 sellerStateAndPaymentValue.put(sellerState, currentRevenue);
             }
@@ -487,31 +421,40 @@ public class FunctionFive extends Function {
         while (it2.hasNext()) {
             Map.Entry<String, String> pair1 = it2.next();
             String sellerID = pair1.getKey();
-            int months = sellerIDAndDays.get(sellerID) / 365;
-            String sellerState = pair1.getValue();
-            if (!sellerStateAndMonths.containsKey(sellerState)) {
-                sellerStateAndMonths.put(sellerState, months);
-            } else {
-                int currentMonths = sellerStateAndMonths.get(sellerState);
-                currentMonths += months;
-                sellerStateAndMonths.put(sellerState, currentMonths);
+            if (sellerIDAndDays.get(sellerID) != null) { // seller ID did not sell anything
+                int months = sellerIDAndDays.get(sellerID) / 30; // assuming one month is on average 30 days
+                String sellerState = pair1.getValue();
+                if (!sellerStateAndMonths.containsKey(sellerState)) {
+                    sellerStateAndMonths.put(sellerState, months);
+                } else {
+                    int currentMonths = sellerStateAndMonths.get(sellerState);
+                    currentMonths += months;
+                    sellerStateAndMonths.put(sellerState, currentMonths);
+                }
             }
         }
 
-        Iterator<Map.Entry<String, Integer>> it3 = sellerStateAndPaymentValue.entrySet().iterator();
+        Iterator<Map.Entry<String, Double>> it3 = sellerStateAndPaymentValue.entrySet().iterator();
 
-        System.out.println("Monthly Revenue In Each State: ");
+        System.out.println("\nMonthly revenue in each state:");
         while (it3.hasNext()) {
-            Map.Entry<String, Integer> pair1 = it3.next();
+            Map.Entry<String, Double> pair1 = it3.next();
             String sellerState = pair1.getKey();
-            int payment = pair1.getValue();
+            double payment = pair1.getValue();
             int months = sellerStateAndMonths.get(sellerState);
-            int monthlyRevenue = payment / months;
-            System.out.println("Seller state: " + sellerState + " Monthly revenue: " + monthlyRevenue);
+            double monthlyRevenue = payment / months;
+            if (months == 0) { // did not reach 30 days
+                monthlyRevenue = payment;
+            }
+            System.out.println("Seller state: " + sellerState + " Monthly revenue: "
+                    + String.format("%.2f", monthlyRevenue));
         }
     }
 
     private void respond() {
-        System.out.println("If I am a seller, I will sell ... I am going to open a store in ... because ...");
+        System.out.println("\nIf I am a seller, I will sell health and beauty products because it is the top product " +
+                "category with high revenue.\nI am going to open a store in MA because it has the highest monthly revenue." +
+                "\nHowever, all these data are not representative of everything and it really depends on the consumer" +
+                "\nneeds and wants at different points in time and also the economic situations.");
     }
 }
