@@ -42,6 +42,9 @@ public class Parser {
             } catch (NumberFormatException e) {
                 throw new InvalidFunctionTwoException();
             }
+            if (numberB < numberA) {
+                throw new InvalidFunctionTwoException();
+            }
             return new FunctionTwo(numberA, numberB);
         } else if (functionNumber.equals("3")) {
             if (size != 2) {

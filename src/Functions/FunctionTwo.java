@@ -6,7 +6,7 @@ import java.util.Arrays;
 public class FunctionTwo extends Function {
     private final int numberA;
     private final int numberB;
-    private ArrayList<Integer> list = new ArrayList<>();
+    private final ArrayList<Integer> list = new ArrayList<>();
 
     public FunctionTwo(int numberA, int numberB) {
         this.numberA = numberA;
