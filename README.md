@@ -16,7 +16,7 @@ from, which are:
 
 5. Several details will be printed when given the files inside data folder (which can be found in this repository).
 
-## Getting started
+## Getting Started
 1. Download the `BeepTechnologies.jar` file [here](https://github.com/ruilingk/Beep-Technologies-Internship-Task/releases/tag/v0.1).
 2. Place it in any folder that you wish and run the executable using `Command Prompt`.
 3. Enter `java -jar BeepTechnologies.jar` and it should be running!
