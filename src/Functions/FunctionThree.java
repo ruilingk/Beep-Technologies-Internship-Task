@@ -129,7 +129,7 @@ public class FunctionThree extends Function {
             lastSentence = currentPair.getLastSentence();
             count++;
             System.out.println("[{\"keyword\": \"" + keyword + "\", \"frequency\": " + frequency +
-                    ", \"first_time\": \"" + firstSentence + "\", \"last_time\": \"" + lastSentence + "\"}].");
+                    ", \"first_time\": \"" + firstSentence + "\", \"last_time\": \"" + lastSentence + "\"}].\n");
         }
     }
 

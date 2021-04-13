@@ -455,6 +455,6 @@ public class FunctionFive extends Function {
         System.out.println("\nIf I am a seller, I will sell health and beauty products because it is the top product " +
                 "category with high revenue.\nI am going to open a store in MA because it has the highest monthly revenue." +
                 "\nHowever, all these data are not representative of everything and it really depends on the consumer" +
-                "\nneeds and wants at different points in time and also the economic situations.");
+                "\nneeds and wants at different points in time and also the economic situations.\n");
     }
 }

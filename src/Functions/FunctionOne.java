@@ -55,5 +55,6 @@ public class FunctionOne extends Function {
                 System.out.print(list.get(i) + ", ");
             }
         }
+        System.out.println("\n");
     }
 }

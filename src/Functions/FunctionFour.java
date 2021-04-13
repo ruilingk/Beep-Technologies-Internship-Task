@@ -125,7 +125,7 @@ public class FunctionFour extends Function {
                 toBePrinted.append("\n");
             }
         }
-        System.out.println(toBePrinted.toString());
+        System.out.println(toBePrinted.toString() + "\n");
     }
 
     @Override
